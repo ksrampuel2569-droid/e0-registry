@@ -1791,7 +1791,7 @@ function viewDashboard(){
     </div>
     <!-- แถว F – Footer -->
     <footer class="dash-footer">
-        <div class="dash-footer-band dash-footer-source">ที่มา : ทะเบียนเฝ้าระวังโรค E0/E1 · ศูนย์ระบาดวิทยา รพ.สต.บ้านอำปึล ต.บักได อ.พนมดงรัก จ.สุรินทร์<br>ณ วันที่ 19 พ.ย. 2569 เวลา 21.53 น.</div>
+        <div class="dash-footer-band dash-footer-source">ที่มา : ทะเบียนเฝ้าระวังโรค E0/E1 · ศูนย์ระบาดวิทยา รพ.สต.บ้านอำปึล ต.บักได อ.พนมดงรัก จ.สุรินทร์<br>ณ วันที่ ${new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Bangkok'}).format(new Date())} เวลา ${new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Bangkok'}).format(new Date())} น.</div>
         <div class="dash-footer-band dash-footer-author">จัดทำโดย.. ศูนย์ระบาดวิทยา รพ.สต.บ้านอำปึล ตำบลบักได อำเภอพนมดงรัก จังหวัดสุรินทร์ · โทร 0985690619 (กริชฎา)</div>
       </footer>
   </section>`;
