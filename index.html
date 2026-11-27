@@ -2780,6 +2780,18 @@ function modalForm(r){
   <button class="close" id="modalClose">×</button>
   <h2>${state.editingId?'แก้ไขข้อมูลผู้ป่วย':'เพิ่มผู้ป่วยใหม่'}</h2>
 
+  <fieldset class="ocr-helper-fieldset"><legend>ช่วยกรอกข้อมูลด้วย AI OCR</legend>
+    <div class="field">
+      <label for="f_ocrImage">เลือกรูปเอกสาร OPD / HOSxP / Epidem-Report</label>
+      <input type="file" id="f_ocrImage" accept="image/jpeg,image/png,image/webp">
+      <small style="display:block;margin-top:6px;color:var(--ink-soft)">รองรับ JPG, PNG, WebP ขนาดไม่เกิน 5 MB หลังปรับภาพ ระบบจะอ่านเฉพาะ 13 ช่องและเติมลงแบบฟอร์มเพื่อให้ตรวจทานก่อนบันทึก</small>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px">
+      <button type="button" class="btn primary" id="btnRunOCR">✨ อ่านข้อมูลจากภาพ</button>
+      <span id="ocrStatus" role="status" aria-live="polite" style="font-size:13px;color:var(--ink-soft)">ยังไม่ได้เลือกภาพ</span>
+    </div>
+  </fieldset>
+
   <fieldset><legend>ข้อมูลผู้ป่วย</legend>
     <div class="grid4">
       <div class="field"><label>คำนำหน้า</label><select id="f_prefix">${PREFIXES.map(p=>`<option ${p===r.prefix?'selected':''}>${p}</option>`).join('')}</select></div>
@@ -3017,12 +3029,122 @@ async function uploadPendingAttachments(recordId){
   modalPendingImages=[];
 }
 
+function ocrDateToInputValue(raw){
+  const s=String(raw||'').trim();
+  if(!s)return '';
+  let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  let y,mo,d;
+  if(m){ d=Number(m[1]); mo=Number(m[2]); y=Number(m[3]); }
+  else{
+    m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(!m)return '';
+    y=Number(m[1]); mo=Number(m[2]); d=Number(m[3]);
+  }
+  if(y>2400)y-=543;
+  if(y<1900||y>2100||mo<1||mo>12||d<1||d>31)return '';
+  const dt=new Date(Date.UTC(y,mo-1,d));
+  if(dt.getUTCFullYear()!==y||dt.getUTCMonth()!==mo-1||dt.getUTCDate()!==d)return '';
+  return String(y).padStart(4,'0')+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+function applyOCRToPatientForm(data){
+  const setText=(id,value)=>{
+    const el=document.getElementById(id), v=String(value||'').trim();
+    if(el && v) el.value=v;
+  };
+  const prefix=String(data.prefix||'').trim();
+  const prefixEl=document.getElementById('f_prefix');
+  if(prefixEl && prefix && Array.from(prefixEl.options).some(o=>o.text.trim()===prefix)) prefixEl.value=prefix;
+
+  setText('f_firstname',data.first_name);
+  setText('f_lastname',data.last_name);
+  setText('f_age',data.age);
+  setText('f_hn',data.hn);
+  setText('f_houseNo',data.house_no);
+  setText('f_tambon',data.subdistrict);
+  setText('f_amphoe',data.district);
+  setText('f_changwat',data.province);
+
+  const village=String(data.village||'').trim();
+  if(village){
+    const mooEl=document.getElementById('f_moo');
+    const otherWrap=document.getElementById('wrap_mooOther');
+    const otherInput=document.getElementById('f_mooOther');
+    const norm=x=>String(x||'').replace(/\s+/g,'').replace(/^หมู่ที่?/,'').replace(/^ม\./,'').toLowerCase();
+    const explicitMoo=village.match(/(?:หมู่ที่?|ม\.)\s*(\d+)/);
+    const villageName=village.replace(/(?:หมู่ที่?|ม\.)\s*\d+/,'').trim();
+    const matches=VILLAGES.filter(v=>{
+      if(explicitMoo) return String(v.moo)===explicitMoo[1];
+      return norm(v.name)===norm(villageName||village);
+    });
+    if(mooEl && matches.length===1){
+      mooEl.value=matches[0].moo;
+      mooEl.dispatchEvent(new Event('change',{bubbles:true}));
+    }else if(mooEl && (explicitMoo || villageName)){
+      mooEl.value='__other';
+      if(otherWrap)otherWrap.style.display='block';
+      if(otherInput)otherInput.value=village;
+    }
+  }
+
+  const diagnosis=String(data.diagnosis||'').trim();
+  if(diagnosis){
+    const diagnosisEl=document.getElementById('f_diagnosisId');
+    const match=diagnosisEl && Array.from(diagnosisEl.options).find(o=>
+      o.value!=='other' && o.text.trim().toLowerCase()===diagnosis.toLowerCase()
+    );
+    if(diagnosisEl){
+      diagnosisEl.value=match?match.value:'other';
+      diagnosisEl.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    if(!match)setText('f_diagnosisText',diagnosis);
+  }
+
+  const onset=ocrDateToInputValue(data.onset_date);
+  const treatment=ocrDateToInputValue(data.treatment_date);
+  if(onset)document.getElementById('f_illDate').value=onset;
+  if(treatment)document.getElementById('f_treatDate').value=treatment;
+}
+
 function bindModalEvents(rec){
   loadRecordAttachments(rec.id);
   const cameraInput=document.getElementById('f_imageCamera');
   const pickerInput=document.getElementById('f_imagePicker');
   if(cameraInput) cameraInput.onchange=async e=>{await handleAttachmentFiles(e.target.files);e.target.value='';};
   if(pickerInput) pickerInput.onchange=async e=>{await handleAttachmentFiles(e.target.files);e.target.value='';};
+
+  const ocrInput=document.getElementById('f_ocrImage');
+  const ocrButton=document.getElementById('btnRunOCR');
+  const ocrStatus=document.getElementById('ocrStatus');
+  if(ocrButton) ocrButton.onclick=async ()=>{
+    if(!['admin','staff'].includes(e0CurrentUser?.role)){
+      alert('บัญชีนี้ไม่มีสิทธิ์ใช้งาน OCR');
+      return;
+    }
+    const file=ocrInput && ocrInput.files && ocrInput.files[0];
+    if(!file){ if(ocrStatus) ocrStatus.textContent='กรุณาเลือกรูปภาพก่อน'; return; }
+    const allowed=['image/jpeg','image/png','image/webp'];
+    if(!allowed.includes(file.type)){ if(ocrStatus) ocrStatus.textContent='รองรับเฉพาะ JPG, PNG และ WebP'; return; }
+    if(file.size>5*1024*1024){ if(ocrStatus) ocrStatus.textContent='ไฟล์ภาพต้องมีขนาดไม่เกิน 5 MB'; return; }
+
+    ocrButton.disabled=true;
+    const oldLabel=ocrButton.textContent;
+    ocrButton.textContent='กำลังอ่านภาพ…';
+    if(ocrStatus) ocrStatus.textContent='กำลังส่งภาพให้ AI อ่านข้อมูล กรุณารอสักครู่';
+    try{
+      const dataUrl=await readFileAsDataUrl(file);
+      const parts=String(dataUrl).split(',');
+      if(parts.length!==2) throw new Error('อ่านไฟล์ภาพไม่สำเร็จ');
+      const result=await e0Api('ocrImage',{mimeType:file.type,imageBase64:parts[1]});
+      applyOCRToPatientForm(result||{});
+      if(ocrStatus) ocrStatus.textContent='อ่านข้อมูลเสร็จแล้ว กรุณาตรวจสอบและแก้ไขทุกช่องก่อนกดบันทึก';
+    }catch(err){
+      if(ocrStatus) ocrStatus.textContent='อ่านภาพไม่สำเร็จ: '+(err.message||'กรุณาลองใหม่');
+    }finally{
+      ocrButton.disabled=false;
+      ocrButton.textContent=oldLabel;
+    }
+  };
+
   document.getElementById('modalClose').onclick = closeModal;
   document.getElementById('modalCancel').onclick = closeModal;
   document.getElementById('f_diagnosisId').onchange = (e)=>{
