@@ -791,7 +791,6 @@
 .attachment-card .attachment-actions{display:flex;gap:5px;flex-wrap:wrap}
 .attachment-card .pending-tag{font-size:10px;color:#946200}
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 #authGate{position:fixed;inset:0;z-index:99999;background:#f5f2eb;display:flex;align-items:center;justify-content:center;padding:24px}
 #authGate .auth-card{background:#fff;border:1px solid #e5dfd2;border-radius:18px;padding:30px;max-width:440px;width:100%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.08)}
@@ -806,8 +805,11 @@
   <div class="auth-card">
     <div style="font-size:34px;margin-bottom:10px">🩺</div>
     <h2>ระบบทะเบียนและเฝ้าระวังโรค E0/E1</h2>
-    <p>เข้าสู่ระบบด้วยบัญชี Google ที่ได้รับอนุญาตจากผู้ดูแลระบบ</p>
-    <div id="googleSignInButton" style="display:flex;justify-content:center;min-height:44px"></div>
+    <p>กรอกรหัส PIN 6 หลักที่ได้รับจากผู้ดูแลระบบ</p>
+    <form id="pinLoginForm" onsubmit="event.preventDefault();loginWithPin();" style="display:flex;flex-direction:column;gap:12px;align-items:center">
+      <input id="pinInput" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="กรอก PIN 6 หลัก" aria-label="PIN 6 หลัก" style="width:220px;text-align:center;font-size:24px;letter-spacing:9px;padding:12px;border:1px solid #cbd5e1;border-radius:10px" required>
+      <button id="pinLoginButton" type="submit" style="width:220px;padding:12px;border:0;border-radius:9px;background:#2456a6;color:#fff;font-weight:700;cursor:pointer">เข้าสู่ระบบ</button>
+    </form>
     <div id="authMessage">กรุณาเข้าสู่ระบบเพื่อเริ่มใช้งาน</div>
   </div>
 </div>
@@ -828,60 +830,31 @@
 /* ============================================================
    ★★★ WEB APP URL ★★★
    ============================================================ */
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxg94GxHMzaH0aYGuCThNXDjeT0uR4t3E-yJJ1m4D06ZTgI8yDu89Ac5q5VV_oUrwrE-w/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAr8thjm9Hw80jdcUqitPzrJPQ4n7hGtzuGqMtXuAetcqluZI8F3zhF_-USxyOtj5MyA/exec';
 
-const GOOGLE_CLIENT_ID = '391191773037-qqt92haqksma0u6gr7vhbhctev7kblq2.apps.googleusercontent.com';
-let e0IdToken = '';
+let e0SessionToken = '';
 let e0CurrentUser = null;
 let e0ServerSnapshot = new Map();
-let e0LoginStarted = false;
-
-function authMessage(message) {
-  const el=document.getElementById('authMessage'); if(el) el.textContent=message;
-}
+function authMessage(message) { const el=document.getElementById('authMessage'); if(el) el.textContent=message; }
 async function e0Api(action,payload={}) {
-  if(!e0IdToken) throw new Error('กรุณาเข้าสู่ระบบก่อน');
-  const res=await fetch(WEB_APP_URL, {
-    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body:JSON.stringify({idToken:e0IdToken,action,payload})
-  });
+  if(!e0SessionToken && action!=='loginPin') throw new Error('กรุณาเข้าสู่ระบบก่อน');
+  const res=await fetch(WEB_APP_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({sessionToken:e0SessionToken,action,payload})});
   if(!res.ok) throw new Error('HTTP '+res.status);
-  const data=await res.json();
-  if(!data.ok) throw new Error(data.message||data.code||'API error');
-  return data.data;
+  const data=await res.json(); if(!data.ok) throw new Error(data.message||data.code||'API error'); return data.data;
 }
-function handleGoogleCredential(response) {
-  e0IdToken=response.credential||'';
-  if(!e0IdToken) { authMessage('ไม่สามารถรับข้อมูลเข้าสู่ระบบจาก Google ได้'); return; }
-  authMessage('กำลังตรวจสอบบัญชีและสิทธิ์...');
-  e0Api('login',{}).then(user=>{
-    e0CurrentUser=user;
-    if(user.status!=='active') {
-      authMessage(user.status==='pending'?'บัญชีลงทะเบียนแล้ว กำลังรอ Admin อนุมัติ':'บัญชีนี้ถูกระงับการใช้งาน');
-      return;
-    }
+async function loginWithPin(){
+  const input=document.getElementById('pinInput'), button=document.getElementById('pinLoginButton');
+  const pin=String(input?.value||'').trim(); if(!/^\d{6}$/.test(pin)){authMessage('กรุณากรอก PIN ให้ครบ 6 หลัก');return;}
+  button.disabled=true; button.textContent='กำลังตรวจสอบ...'; authMessage('กำลังตรวจสอบ PIN');
+  try{
+    const result=await e0Api('loginPin',{pin}); e0SessionToken=result.sessionToken; e0CurrentUser=result.user;
     document.getElementById('authGate').style.display='none';
-    const bar=document.getElementById('authUserBar');
-    document.getElementById('authUserLabel').textContent=(user.name||user.email)+' · '+user.role;
-    bar.style.display='block';
-    loadState();
-  }).catch(err=>{e0IdToken='';authMessage(err.message||'เข้าสู่ระบบไม่สำเร็จ');});
+    document.getElementById('authUserLabel').textContent=(result.user.name||result.user.email)+' · '+result.user.role;
+    document.getElementById('authUserBar').style.display='block'; input.value=''; loadState();
+  }catch(err){authMessage(err.message||'เข้าสู่ระบบไม่สำเร็จ');input.value='';input.focus();}
+  finally{button.disabled=false;button.textContent='เข้าสู่ระบบ';}
 }
-function signOutE0() {
-  e0IdToken=''; e0CurrentUser=null; e0ServerSnapshot.clear();
-  if(window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
-  document.getElementById('authUserBar').style.display='none';
-  document.getElementById('authGate').style.display='flex';
-  authMessage('ออกจากระบบแล้ว กรุณาเข้าสู่ระบบอีกครั้ง');
-}
-function initGoogleLogin() {
-  if(e0LoginStarted) return;
-  if(!window.google?.accounts?.id) { setTimeout(initGoogleLogin,250); return; }
-  e0LoginStarted=true;
-  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential,auto_select:false});
-  google.accounts.id.renderButton(document.getElementById('googleSignInButton'),{theme:'outline',size:'large',shape:'rectangular',text:'signin_with',width:280,locale:'th'});
-}
-window.addEventListener('load',initGoogleLogin);
+function signOutE0(){e0SessionToken='';e0CurrentUser=null;e0ServerSnapshot.clear();document.getElementById('authUserBar').style.display='none';document.getElementById('authGate').style.display='flex';authMessage('ออกจากระบบแล้ว กรุณากรอก PIN อีกครั้ง');}
 
 
 /* ================= DATA ================= */
