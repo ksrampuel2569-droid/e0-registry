@@ -75,6 +75,11 @@
   .modal{background:var(--bg-panel);border-radius:6px;max-width:760px;width:100%;padding:26px 28px;border:1px solid var(--line);}
   .modal h2{font-family:var(--font-display);color:var(--primary-dark);margin:0 0 4px;font-size:19px;}
   .modal .close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-soft);}
+  .aor-popup-backdrop{position:fixed;inset:0;background:rgba(7,47,44,.62);display:none;align-items:center;justify-content:center;padding:18px;z-index:90;}
+  .aor-popup-backdrop.open{display:flex;}
+  .aor-popup{background:var(--bg-panel);border:1px solid var(--line);border-radius:8px;padding:22px;width:min(620px,100%);box-shadow:0 12px 36px rgba(0,0,0,.24);}
+  .aor-popup h3{margin:0 0 6px;color:var(--primary-dark);font-family:var(--font-display);}
+  .aor-popup textarea{min-height:300px;line-height:1.65;white-space:pre-wrap;}
   fieldset{border:1px solid var(--line-soft);border-radius:4px;margin:0 0 14px;padding:12px 14px;}
   legend{font-family:var(--font-display);font-size:11.5px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;padding:0 6px;}
   .empty{padding:34px;text-align:center;color:var(--ink-soft);font-size:14px;}
@@ -2904,9 +2909,12 @@ function modalForm(r){
     </div>
   </fieldset>
 
-  <div style="display:flex;justify-content:flex-end;gap:10px;">
+  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <button type="button" class="btn" id="btnCreateAorMor">📢 สร้างข้อความแจ้ง อสม.</button>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
     <button class="btn ghost" id="modalCancel">ยกเลิก</button>
     <button class="btn gold" id="modalSave">บันทึกข้อมูล</button>
+    </div>
   </div>
   `;
 }
@@ -3105,6 +3113,62 @@ function applyOCRToPatientForm(data){
   if(treatment)document.getElementById('f_treatDate').value=treatment;
 }
 
+function openAorMorMessagePopup(){
+  const val=id=>String(document.getElementById(id)?.value||'').trim();
+  const prefix=val('f_prefix'), first=val('f_firstname'), last=val('f_lastname'), age=val('f_age');
+  const house=val('f_houseNo'), mooSelect=val('f_moo');
+  const moo=mooSelect==='__other'?val('f_mooOther'):mooSelect;
+  const vill=villageByMoo(moo);
+  const villageName=vill?.name||'';
+  const diagnosisSelect=document.getElementById('f_diagnosisId');
+  const diagnosis=val('f_diagnosisId')==='other' ? val('f_diagnosisText') : (diagnosisSelect?.selectedOptions?.[0]?.textContent||'').trim();
+  const now=new Date();
+  const dateText=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',year:'numeric'}).format(now);
+  const timeText=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false}).format(now);
+  const fullName=[prefix,first,last].filter(Boolean).join(' ').trim()||'ไม่ระบุชื่อ';
+  const ageText=age?`อายุ ${age} ปี`:'ไม่ระบุอายุ';
+  const address=[house?`บ้านเลขที่ ${house}`:'',moo?`หมู่ ${moo}`:'',villageName].filter(Boolean).join(' ');
+  const message=[
+    `📢 แจ้ง อสม. ${moo?`หมู่ ${moo}`:''}`.trim(),
+    '',
+    `วันที่ ${dateText} เวลา ${timeText} น.`,
+    '',
+    `รพ.สต.บ้านอำปึลได้รับแจ้งผู้ป่วย${diagnosis?`โรค${diagnosis}`:' (ไม่ระบุโรค)'}`,
+    '',
+    `ชื่อ ${fullName} ${ageText}`,
+    `ที่อยู่${address?address:'ไม่ระบุที่อยู่'}`,
+    '',
+    'ขอความร่วมมือ อสม. ในพื้นที่ดำเนินการดังนี้',
+    '1. สำรวจและกำจัดแหล่งเพาะพันธุ์ยุงลาย',
+    '2. เฝ้าระวังผู้มีไข้ในครัวเรือนใกล้เคียง',
+    '3. ประสานเจ้าหน้าที่เพื่อดำเนินมาตรการควบคุมโรค'
+  ].join('\n');
+  let popup=document.getElementById('aorMessagePopup');
+  if(!popup){
+    popup=document.createElement('div');
+    popup.id='aorMessagePopup';
+    popup.className='aor-popup-backdrop';
+    popup.innerHTML=`<section class="aor-popup" role="dialog" aria-modal="true" aria-labelledby="aorPopupTitle"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h3 id="aorPopupTitle">📢 ข้อความแจ้ง อสม.</h3><button type="button" class="btn ghost small" id="aorPopupClose">ปิด</button></div><p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px">ตรวจสอบและแก้ไขข้อความได้ก่อนคัดลอกไปส่งใน LINE</p><textarea id="aorMessageText" aria-label="ข้อความแจ้ง อสม."></textarea><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button type="button" class="btn ghost" id="aorPopupClose2">ปิด</button><button type="button" class="btn gold" id="aorCopyMessage">คัดลอกข้อความ</button></div><div id="aorCopyStatus" role="status" style="font-size:12px;color:var(--ink-soft);margin-top:8px"></div></section>`;
+    document.body.appendChild(popup);
+    const close=()=>popup.classList.remove('open');
+    popup.querySelector('#aorPopupClose').onclick=close;
+    popup.querySelector('#aorPopupClose2').onclick=close;
+    popup.addEventListener('click',e=>{if(e.target===popup)close();});
+    popup.querySelector('#aorCopyMessage').onclick=async()=>{
+      const text=popup.querySelector('#aorMessageText').value;
+      const status=popup.querySelector('#aorCopyStatus');
+      try{
+        if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+        else {const area=popup.querySelector('#aorMessageText');area.focus();area.select();if(!document.execCommand('copy'))throw new Error('copy failed');}
+        status.textContent='คัดลอกข้อความแล้ว สามารถนำไปวางใน LINE ได้';
+      }catch(err){status.textContent='คัดลอกอัตโนมัติไม่ได้ กรุณาเลือกข้อความแล้วคัดลอกด้วยตนเอง';}
+    };
+  }
+  popup.querySelector('#aorMessageText').value=message;
+  popup.querySelector('#aorCopyStatus').textContent='';
+  popup.classList.add('open');
+}
+
 function bindModalEvents(rec){
   loadRecordAttachments(rec.id);
   const cameraInput=document.getElementById('f_imageCamera');
@@ -3145,6 +3209,7 @@ function bindModalEvents(rec){
     }
   };
 
+  document.getElementById('btnCreateAorMor').onclick = openAorMorMessagePopup;
   document.getElementById('modalClose').onclick = closeModal;
   document.getElementById('modalCancel').onclick = closeModal;
   document.getElementById('f_diagnosisId').onchange = (e)=>{
