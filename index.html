@@ -782,37 +782,37 @@
   }
 
 
-  /* ===== เข้าสู่ระบบ / บัญชีผู้ใช้ (เพิ่มใน V.5) ===== */
-  #authScreen{position:fixed;inset:0;z-index:300;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px;}
-  .auth-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:6px;padding:34px 30px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.12);}
-  .auth-seal{width:56px;height:56px;border:2px solid var(--primary-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:var(--font-display);color:var(--primary-dark);font-weight:700;font-size:18px;}
-  .auth-card h1{font-size:22px;}
-  .auth-msg{font-size:14px;line-height:1.7;color:var(--ink);}
-  .auth-note{font-size:12.5px;color:var(--ink-soft);margin-top:18px;line-height:1.6;}
-  .auth-actions{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
-  .acct{margin:22px 14px 0 0;padding:12px 10px;border-top:1px solid rgba(255,255,255,.25);color:#DCEAE6;font-size:12.5px;}
-  .acct-row{display:flex;gap:9px;align-items:center;}
-  .acct-row img{width:36px;height:36px;border-radius:50%;flex:0 0 36px;background:#fff;}
-  .acct-name{font-weight:600;word-break:break-word;}
-  .acct-mail{opacity:.75;font-size:11.5px;word-break:break-all;}
-  .acct-role{display:inline-block;margin:8px 0;padding:2px 9px;border-radius:20px;background:var(--gold);color:#fff;font-size:11.5px;font-weight:600;}
-  .acct button{display:block;width:100%;background:transparent;color:#EFE6C9;border:1px solid #EFE6C9;border-radius:4px;padding:6px;font-family:var(--font-body);font-size:12.5px;cursor:pointer;}
-  .acct button:hover{background:rgba(255,255,255,.12);}
-  @media print{#authScreen{display:none!important;}.acct{display:none!important;}}
-  @media screen and (max-width:760px){
-    #app{flex-direction:column;}
-    .spine{display:none;}
-    .sidebar{width:100%;flex:none;padding:8px;display:flex;flex-wrap:wrap;gap:4px;}
-    .sidebar .tab-btn{width:auto;flex:1 1 auto;padding:8px 10px;}
-    .sidebar .tab-btn .num{display:none;}
-    .acct{flex:1 1 100%;margin:6px 0 0;}
-    main{padding:16px 12px 48px;max-width:100%;}
-  }
+/* E0/E1 private Drive attachments */
+.attachment-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:10px}
+.attachment-card{border:1px solid var(--line,#ddd);border-radius:10px;padding:7px;min-width:0;background:var(--surface,#fff)}
+.attachment-card img{width:100%;height:92px;object-fit:cover;border-radius:7px;background:#f3f4f6}
+.attachment-card .attachment-name{font-size:11px;overflow-wrap:anywhere;margin:5px 0}
+.attachment-card button{font-size:11px;padding:4px 7px}
+.attachment-card .attachment-actions{display:flex;gap:5px;flex-wrap:wrap}
+.attachment-card .pending-tag{font-size:10px;color:#946200}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+#authGate{position:fixed;inset:0;z-index:99999;background:#f5f2eb;display:flex;align-items:center;justify-content:center;padding:24px}
+#authGate .auth-card{background:#fff;border:1px solid #e5dfd2;border-radius:18px;padding:30px;max-width:440px;width:100%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.08)}
+#authGate h2{margin:0 0 8px;color:#243047}#authGate p{color:#687386;line-height:1.6}
+#authMessage{font-size:13px;min-height:22px;margin-top:12px;color:#9b5b18}
+#authUserBar{position:fixed;right:14px;top:10px;z-index:5000;background:#fff;border:1px solid #ddd;border-radius:10px;padding:7px 10px;font-size:12px;display:none;box-shadow:0 3px 14px #0001}
+#authUserBar button{margin-left:8px;border:0;background:#eee;border-radius:6px;padding:5px 8px;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="authScreen"></div>
-<div id="app" style="display:none">
+<div id="authGate">
+  <div class="auth-card">
+    <div style="font-size:34px;margin-bottom:10px">🩺</div>
+    <h2>ระบบทะเบียนและเฝ้าระวังโรค E0/E1</h2>
+    <p>เข้าสู่ระบบด้วยบัญชี Google ที่ได้รับอนุญาตจากผู้ดูแลระบบ</p>
+    <div id="googleSignInButton" style="display:flex;justify-content:center;min-height:44px"></div>
+    <div id="authMessage">กรุณาเข้าสู่ระบบเพื่อเริ่มใช้งาน</div>
+  </div>
+</div>
+<div id="authUserBar"><span id="authUserLabel"></span><button type="button" onclick="signOutE0()">ออกจากระบบ</button></div>
+<div id="app">
   <div class="spine">
     <div class="spine-seal">E0</div>
     <div class="spine-title">ทะเบียนเฝ้าระวังโรคระบาด</div>
@@ -824,15 +824,65 @@
 <div class="overlay" id="overlay"><div class="modal" id="modalBody"></div></div>
 <div class="save-status" id="saveStatus"></div>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 /* ============================================================
-   ตั้งค่าการเชื่อมต่อ (ค่าเหล่านี้ไม่ใช่ความลับ)
-   API_URL = URL Web App ของ Apps Script (ลงท้าย /exec)
-   GOOGLE_CLIENT_ID = OAuth Client ID (Web application)
+   ★★★ WEB APP URL ★★★
    ============================================================ */
-const API_URL = 'https://script.google.com/macros/s/AKfycbwAr8thjm9Hw80jdcUqitPzrJPQ4n7hGtzuGqMtXuAetcqluZI8F3zhF_-USxyOtj5MyA/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxg94GxHMzaH0aYGuCThNXDjeT0uR4t3E-yJJ1m4D06ZTgI8yDu89Ac5q5VV_oUrwrE-w/exec';
+
 const GOOGLE_CLIENT_ID = '391191773037-qqt92haqksma0u6gr7vhbhctev7kblq2.apps.googleusercontent.com';
+let e0IdToken = '';
+let e0CurrentUser = null;
+let e0ServerSnapshot = new Map();
+let e0LoginStarted = false;
+
+function authMessage(message) {
+  const el=document.getElementById('authMessage'); if(el) el.textContent=message;
+}
+async function e0Api(action,payload={}) {
+  if(!e0IdToken) throw new Error('กรุณาเข้าสู่ระบบก่อน');
+  const res=await fetch(WEB_APP_URL, {
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({idToken:e0IdToken,action,payload})
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  if(!data.ok) throw new Error(data.message||data.code||'API error');
+  return data.data;
+}
+function handleGoogleCredential(response) {
+  e0IdToken=response.credential||'';
+  if(!e0IdToken) { authMessage('ไม่สามารถรับข้อมูลเข้าสู่ระบบจาก Google ได้'); return; }
+  authMessage('กำลังตรวจสอบบัญชีและสิทธิ์...');
+  e0Api('login',{}).then(user=>{
+    e0CurrentUser=user;
+    if(user.status!=='active') {
+      authMessage(user.status==='pending'?'บัญชีลงทะเบียนแล้ว กำลังรอ Admin อนุมัติ':'บัญชีนี้ถูกระงับการใช้งาน');
+      return;
+    }
+    document.getElementById('authGate').style.display='none';
+    const bar=document.getElementById('authUserBar');
+    document.getElementById('authUserLabel').textContent=(user.name||user.email)+' · '+user.role;
+    bar.style.display='block';
+    loadState();
+  }).catch(err=>{e0IdToken='';authMessage(err.message||'เข้าสู่ระบบไม่สำเร็จ');});
+}
+function signOutE0() {
+  e0IdToken=''; e0CurrentUser=null; e0ServerSnapshot.clear();
+  if(window.google?.accounts?.id) google.accounts.id.disableAutoSelect();
+  document.getElementById('authUserBar').style.display='none';
+  document.getElementById('authGate').style.display='flex';
+  authMessage('ออกจากระบบแล้ว กรุณาเข้าสู่ระบบอีกครั้ง');
+}
+function initGoogleLogin() {
+  if(e0LoginStarted) return;
+  if(!window.google?.accounts?.id) { setTimeout(initGoogleLogin,250); return; }
+  e0LoginStarted=true;
+  google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleGoogleCredential,auto_select:false});
+  google.accounts.id.renderButton(document.getElementById('googleSignInButton'),{theme:'outline',size:'large',shape:'rectangular',text:'signin_with',width:280,locale:'th'});
+}
+window.addEventListener('load',initGoogleLogin);
+
 
 /* ================= DATA ================= */
 const THAI_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
@@ -929,357 +979,80 @@ function showSaveStatus(msg, type){
   if(type !== 'loading') setTimeout(()=>{ el.classList.remove('show'); }, 2500);
 }
 
-/* ===== ความปลอดภัยของข้อความ (กัน XSS) =====
-   state เก็บข้อความแบบ HTML-escaped ตั้งแต่โหลดจากเซิร์ฟเวอร์ ทำให้ template เดิมทั้งหมดปลอดภัยโดยไม่ต้องแก้ทีละจุด
-   ข้อมูลที่ส่งกลับเซิร์ฟเวอร์/ส่งออกไฟล์ จะถูกแปลงกลับเป็นข้อความจริง (raw) ก่อนเสมอ */
-const ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
-const UNESC_MAP = {amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"};
-function escHtml(v){ return String(v==null?'':v).replace(/[&<>"']/g, c=>ESC_MAP[c]); }
-function unescHtml(v){ return String(v==null?'':v).replace(/&(amp|lt|gt|quot|#39);/g, (m,k)=>UNESC_MAP[k]); }
-function mapStrings(obj, fn){
-  const o = {};
-  Object.keys(obj).forEach(k=>{
-    const v = obj[k];
-    o[k] = typeof v==='string' ? fn(v) : (Array.isArray(v) ? v.map(x=>typeof x==='string'?fn(x):x) : v);
-  });
-  return o;
-}
-function normalizeRecord(r){
-  const x = {
-    ...emptyRecord(), ...r,
-    rep_enabled: (r.rep_enabled === true || String(r.rep_enabled).toUpperCase() === 'TRUE'),
-    rep_confirm: toArray(r.rep_confirm), rep_checkResult: toArray(r.rep_checkResult),
-    rep_escalation: toArray(r.rep_escalation), rep_notify: toArray(r.rep_notify),
-    rep_checkMethod: toArray(r.rep_checkMethod), rep_newsType: toArray(r.rep_newsType),
-  };
-  return mapStrings(x, escHtml);
-}
-function rawRecord(r){ return mapStrings(r, unescHtml); }
-function normalizeThreshold(t){
-  return mapStrings({
-    ...t,
-    minCases: parseInt(t.minCases,10) || 1,
-    windowDays: (t.windowDays === '' || t.windowDays == null) ? null : parseInt(t.windowDays,10),
-    deadlineHours: parseInt(t.deadlineHours,10) || 168,
-    custom: (t.custom === true || String(t.custom).toUpperCase() === 'TRUE'),
-  }, escHtml);
-}
-function rawThreshold(t){ return mapStrings(t, unescHtml); }
-function csvCell(v){
-  let s = (v==null ? '' : v).toString();
-  if(/^[=+\-@\t\r]/.test(s) && !/^-?\d+(\.\d+)?$/.test(s)) s = "'" + s;   // กัน CSV/Excel formula injection
-  return '"' + s.replace(/"/g,'""') + '"';
-}
 
-/* ================= AUTH (Google Identity Services) ================= */
-const auth = { idToken:null, exp:0, user:null, refreshing:null };
-state.users = null; state.audit = null; state.usersLoading = false;
-
-function CAN(){
-  const ok = auth.user && auth.user.status==='active';
-  const role = ok ? auth.user.role : '';
-  return { admin: role==='admin', write: role==='admin'||role==='staff', read: !!role };
-}
-function jwtPayload(token){
-  try{
-    const b = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-    return JSON.parse(decodeURIComponent(escape(atob(b))));
-  }catch(e){ return {}; }
-}
-function waitForGoogle(ms){
-  return new Promise(resolve=>{
-    const t0 = Date.now();
-    (function check(){
-      if(window.google && google.accounts && google.accounts.id) return resolve(true);
-      if(Date.now()-t0 > ms) return resolve(false);
-      setTimeout(check, 200);
-    })();
-  });
-}
-function showAuth(kind, msg){
-  const el = document.getElementById('authScreen');
-  const app = document.getElementById('app');
-  if(app) app.style.display = 'none';
-  el.style.display = 'flex';
-  const m = msg ? `<p class="auth-msg">${escHtml(msg)}</p>` : '';
-  const titles = {
-    loading:'กำลังเตรียมระบบ…', login:'เข้าสู่ระบบ', pending:'รอผู้ดูแลระบบอนุมัติ',
-    suspended:'บัญชีถูกระงับ', error:'เกิดข้อผิดพลาด'
-  };
-  let body = '';
-  if(kind==='login') body = `${m}<div id="gsiBtn" style="display:flex;justify-content:center;margin-top:18px;"></div>
-    <p class="auth-note">ใช้บัญชี Google (Gmail) ของคุณ ผู้สมัครใหม่ต้องรอ Admin อนุมัติก่อนจึงเข้าใช้งานได้</p>`;
-  else if(kind==='pending') body = `<p class="auth-msg">บัญชี <b>${escHtml(auth.user&&auth.user.email)}</b> สมัครสมาชิกแล้ว<br>กรุณาแจ้ง Admin ให้อนุมัติ แล้วกด “ตรวจสอบอีกครั้ง”</p>
-    <div class="auth-actions"><button class="btn gold" id="authRecheck">ตรวจสอบอีกครั้ง</button><button class="btn ghost" id="authLogout">ออกจากระบบ</button></div>`;
-  else if(kind==='suspended') body = `<p class="auth-msg">บัญชี <b>${escHtml(auth.user&&auth.user.email)}</b> ถูกระงับการใช้งาน กรุณาติดต่อ Admin</p>
-    <div class="auth-actions"><button class="btn ghost" id="authLogout">ออกจากระบบ</button></div>`;
-  else if(kind==='error') body = `${m}<div class="auth-actions"><button class="btn gold" onclick="location.reload()">ลองอีกครั้ง</button></div>`;
-  else body = m;
-  el.innerHTML = `<div class="auth-card"><div class="auth-seal">E0</div><h1>ทะเบียนเฝ้าระวังโรคระบาด</h1><p class="sub">${titles[kind]||''}</p>${body}</div>`;
-  if(kind==='login'){
-    const btn = document.getElementById('gsiBtn');
-    try{ google.accounts.id.renderButton(btn, {theme:'outline', size:'large', text:'signin_with', locale:'th', width:280}); }catch(e){}
-  }
-  const rc = document.getElementById('authRecheck'); if(rc) rc.onclick = recheckAccess;
-  const lo = document.getElementById('authLogout'); if(lo) lo.onclick = logout;
-}
-function hideAuth(){
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-}
-async function boot(){
-  showAuth('loading','กำลังเตรียมระบบเข้าสู่ระบบ…');
-  if(!(await waitForGoogle(10000))){ showAuth('error','โหลดระบบ Google Sign-In ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง'); return; }
-  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleCredential, auto_select: true, cancel_on_tap_outside: false });
-  showAuth('login');
-  google.accounts.id.prompt();
-}
-async function onGoogleCredential(resp){
-  const payload = jwtPayload(resp.credential);
-  auth.idToken = resp.credential; auth.exp = payload.exp || 0;
-  if(auth.refreshing){ const r = auth.refreshing; auth.refreshing = null; r.resolve(); }
-  if(auth.user && auth.user.email === String(payload.email||'').toLowerCase()){
-    if(auth.user.status==='active') hideAuth();      // ต่ออายุ token หรือกลับมาจากหน้าเซสชันหมดอายุ
-    return;
-  }
-  auth.user = null;
-  showAuth('loading','กำลังตรวจสอบสิทธิ์…');
-  try{
-    auth.user = await apiCall('login');
-    afterLogin();
-  }catch(err){
-    auth.idToken = null;
-    showAuth('error', err.message);
-  }
-}
-function afterLogin(){
-  if(!auth.user) return;
-  if(auth.user.status==='pending') return showAuth('pending');
-  if(auth.user.status!=='active') return showAuth('suspended');
-  hideAuth();
-  loadState();
-  startSync();
-}
-async function recheckAccess(){
-  try{ auth.user = await apiCall('login'); afterLogin(); }
-  catch(err){ alert(err.message); }
-}
-function logout(){
-  try{ google.accounts.id.disableAutoSelect(); }catch(e){}
-  auth.idToken = null; auth.user = null; auth.exp = 0;
-  state.records = []; state.users = null; state.audit = null;
-  if(syncTimer){ clearInterval(syncTimer); syncTimer = null; }
-  showAuth('login');
-}
-async function ensureToken(){
-  if(!auth.idToken) throw new Error('กรุณาเข้าสู่ระบบ');
-  if(auth.exp - Date.now()/1000 > 120) return;
-  await new Promise((resolve, reject)=>{
-    auth.refreshing = { resolve };
-    try{ google.accounts.id.prompt(); }catch(e){}
-    setTimeout(()=>{ if(auth.refreshing){ auth.refreshing = null; reject(new Error('เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง')); } }, 8000);
-  }).catch(err=>{ showAuth('login','เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง'); throw err; });
-}
-
-/* ================= API ================= */
-async function apiCall(action, payload){
-  if(action !== 'login') await ensureToken();
-  const res = await fetch(API_URL, {
-    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ idToken: auth.idToken, action, payload: payload || {} })
-  });
-  if(!res.ok) throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ (HTTP ' + res.status + ')');
-  let out;
-  try{ out = await res.json(); }catch(e){ throw new Error('เซิร์ฟเวอร์ตอบกลับในรูปแบบที่ไม่ถูกต้อง'); }
-  if(!out.ok){
-    const e = new Error(out.message || 'เกิดข้อผิดพลาด');
-    e.code = out.code; e.data = out.data;
-    if(out.code==='PENDING' || out.code==='SUSPENDED'){
-      auth.user = { ...(auth.user||{}), status: out.code==='PENDING' ? 'pending' : 'suspended' };
-      afterLogin();
-    }
-    throw e;
-  }
-  return out.data;
-}
-
-/* ================= DATA LAYER ================= */
-async function loadState(opts){
-  const silent = opts && opts.silent;
+async function loadState(){
   const mainEl = document.getElementById('main');
-  if(!silent && mainEl) mainEl.innerHTML = '<div class="empty">⏳ กำลังโหลดข้อมูล…</div>';
+  if(mainEl) mainEl.innerHTML = '<div class="empty">⏳ กำลังโหลดข้อมูลจาก Google Sheets…</div>';
   try {
-    const rd = await apiCall('listRecords');
-    const td = await apiCall('listThresholds');
-    state.records = (rd.records || []).map(normalizeRecord);
-    state.thresholds = (td.thresholds && td.thresholds.length)
-      ? td.thresholds.map(normalizeThreshold)
-      : DEFAULT_THRESHOLDS.map(normalizeThreshold);
-
-    let addedNew = false;
-    DEFAULT_THRESHOLDS.forEach(def=>{
-      if(!state.thresholds.some(t=>t.id===def.id)){ state.thresholds.push(normalizeThreshold({...def})); addedNew = true; }
-    });
-    if(addedNew && CAN().admin) await saveThresholds();
-
-    try{ state.lastBackupAt = localStorage.getItem('lastBackupAt') || null; }catch(e){ state.lastBackupAt = null; }
+    const [recordData, thresholdData] = await Promise.all([
+      e0Api('listRecords',{}), e0Api('listThresholds',{})
+    ]);
+    const records = Array.isArray(recordData.records) ? recordData.records : [];
+    state.records = records.map(r => ({
+      ...emptyRecord(), ...r,
+      rep_enabled: (r.rep_enabled === true || String(r.rep_enabled).toUpperCase() === 'TRUE'),
+      rep_confirm: toArray(r.rep_confirm), rep_checkResult: toArray(r.rep_checkResult),
+      rep_escalation: toArray(r.rep_escalation), rep_notify: toArray(r.rep_notify),
+      rep_checkMethod: toArray(r.rep_checkMethod), rep_newsType: toArray(r.rep_newsType),
+    }));
+    e0ServerSnapshot = new Map(state.records.map(r=>[r.id, JSON.stringify(r)]));
+    const incoming = Array.isArray(thresholdData.thresholds) ? thresholdData.thresholds : [];
+    state.thresholds = incoming.length ? incoming.map(t=>({
+      ...t, minCases:parseInt(t.minCases,10)||1,
+      windowDays:(t.windowDays===''||t.windowDays==null)?null:parseInt(t.windowDays,10),
+      deadlineHours:parseInt(t.deadlineHours,10)||168,
+      custom:t.custom===true||String(t.custom).toUpperCase()==='TRUE'
+    })) : DEFAULT_THRESHOLDS.slice();
+    let addedNew=false;
+    DEFAULT_THRESHOLDS.forEach(def=>{if(!state.thresholds.some(t=>t.id===def.id)){state.thresholds.push({...def});addedNew=true;}});
+    if(addedNew && e0CurrentUser?.role==='admin') await saveThresholds();
+    try{state.lastBackupAt=localStorage.getItem('lastBackupAt')||null;}catch(e){state.lastBackupAt=null;}
   } catch(err) {
-    console.error('❌ โหลดข้อมูลไม่สำเร็จ:', err);
-    if(auth.user && auth.user.status==='active' && mainEl){
-      mainEl.innerHTML = `
-        <div class="page-head"><p class="eyebrow">เกิดข้อผิดพลาด</p><h1>ไม่สามารถโหลดข้อมูลได้</h1><p class="sub">${escHtml(err.message)}</p></div>
-        <div class="panel"><button class="btn gold" onclick="loadState()">🔄 ลองอีกครั้ง</button></div>`;
-    }
+    console.error('โหลดข้อมูลไม่สำเร็จ:',err);
+    if(mainEl) mainEl.innerHTML=`<div class="page-head"><p class="eyebrow">เกิดข้อผิดพลาด</p><h1>ไม่สามารถเชื่อมต่อกับระบบได้</h1><p class="sub">${String(err.message||err)}</p></div><div class="panel"><button class="btn gold" onclick="loadState()">ลองอีกครั้ง</button></div>`;
     return;
   }
   render();
 }
 
-async function saveRecord(rec, isNew){
-  state.isSaving = true; showSaveStatus('⏳ กำลังบันทึก…', 'loading');
-  try {
-    const d = await apiCall('saveRecord', { record: rawRecord(rec), isNew: !!isNew, baseVersion: rec.version });
-    showSaveStatus('✅ บันทึกสำเร็จ', 'ok');
-    return normalizeRecord(d.record);
-  } catch(err) {
-    showSaveStatus('❌ บันทึกไม่สำเร็จ', 'err');
-    throw err;
-  } finally { state.isSaving = false; }
-}
-function mergeCurrent(cur){
-  const i = state.records.findIndex(x=>x.id===cur.id);
-  if(i>=0) state.records[i] = cur; else state.records.push(cur);
-}
-// บันทึกพร้อมจัดการกรณีข้อมูลถูกแก้จากเครื่องอื่น (ให้ผู้ใช้เลือกเอง ไม่ทับเงียบ ๆ)
-async function commitRecord(updated, isNew){
-  try { return await saveRecord(updated, isNew); }
-  catch(err){
-    if(err.code==='CONFLICT' && err.data && err.data.current){
-      const cur = normalizeRecord(err.data.current);
-      const ok = confirm('ข้อมูลรายนี้ถูกแก้ไขจากเครื่องอื่นหลังจากที่คุณเปิดขึ้นมา\n\nกด "ตกลง" เพื่อบันทึกทับด้วยข้อมูลของคุณ\nกด "ยกเลิก" เพื่อโหลดข้อมูลล่าสุดและทิ้งการแก้ไขของคุณ');
-      if(ok) return await saveRecord({ ...updated, version: cur.version }, false);
-      mergeCurrent(cur);
-      const e = new Error('RELOADED'); e.code = 'RELOADED'; throw e;
-    }
-    if(err.code==='DUPLICATE_ID' && err.data && err.data.current){
-      mergeCurrent(normalizeRecord(err.data.current));
-      alert('รายการนี้ถูกบันทึกไว้แล้ว (อาจกดซ้ำ หรือบันทึกจากเครื่องอื่น) ระบบแสดงข้อมูลที่บันทึกไว้แล้ว');
-      const e = new Error('RELOADED'); e.code = 'RELOADED'; throw e;
-    }
-    if(err.code==='NOT_FOUND'){
-      state.records = state.records.filter(r=>r.id!==updated.id);
-      alert(err.message);
-      const e = new Error('RELOADED'); e.code = 'RELOADED'; throw e;
-    }
-    throw err;
+async function saveRecords(){
+  if(!e0CurrentUser || !['admin','staff'].includes(e0CurrentUser.role)) {
+    showSaveStatus('บัญชีนี้ไม่มีสิทธิ์บันทึกข้อมูล','err'); throw new Error('ไม่มีสิทธิ์บันทึกข้อมูล');
   }
+  state.isSaving=true; showSaveStatus('กำลังบันทึก…','loading');
+  try{
+    const currentIds=new Set(state.records.map(r=>r.id));
+    for(const rec of state.records){
+      const oldJson=e0ServerSnapshot.get(rec.id);
+      const isNew=!oldJson;
+      if(!isNew && oldJson===JSON.stringify(rec)) continue;
+      const base=oldJson?JSON.parse(oldJson):null;
+      const result=await e0Api('saveRecord',{record:rec,isNew:isNew,baseVersion:base?Number(base.version)||1:0});
+      if(result?.record) Object.assign(rec,result.record);
+      e0ServerSnapshot.set(rec.id,JSON.stringify(rec));
+    }
+    const removed=[];
+    e0ServerSnapshot.forEach((v,id)=>{if(!currentIds.has(id))removed.push({id,record:JSON.parse(v)});});
+    for(const item of removed){
+      if(e0CurrentUser.role!=='admin') throw new Error('เฉพาะ Admin เท่านั้นที่ลบรายการได้');
+      await e0Api('deleteRecord',{id:item.id,baseVersion:Number(item.record.version)||1});
+      e0ServerSnapshot.delete(item.id);
+    }
+    showSaveStatus('บันทึกสำเร็จ','ok');
+  }catch(err){
+    showSaveStatus('บันทึกไม่สำเร็จ','err');
+    alert('บันทึกไม่สำเร็จ: '+(err.message||err));
+    throw err;
+  }finally{state.isSaving=false;}
 }
 
 async function saveThresholds(){
-  if(!CAN().admin) return false;
-  try {
-    showSaveStatus('⏳ กำลังบันทึก…', 'loading');
-    await apiCall('saveThresholds', { thresholds: state.thresholds.map(rawThreshold) });
-    showSaveStatus('✅ บันทึกสำเร็จ', 'ok');
-    return true;
-  } catch(err) {
-    showSaveStatus('❌ บันทึกไม่สำเร็จ', 'err');
-    alert('บันทึกเกณฑ์ไม่สำเร็จ: ' + err.message);
-    return false;
+  if(e0CurrentUser?.role!=='admin') {
+    console.warn('เฉพาะ Admin เท่านั้นที่บันทึกเกณฑ์ได้'); return;
   }
+  try{await e0Api('saveThresholds',{thresholds:state.thresholds});}
+  catch(err){console.error('บันทึกเกณฑ์ไม่สำเร็จ',err);throw err;}
 }
-
-/* ===== ซิงก์ข้อมูลจากเครื่องอื่น (ตรวจทุก 60 วินาที) ===== */
-let syncTimer = null;
-function startSync(){ if(syncTimer) clearInterval(syncTimer); syncTimer = setInterval(syncTick, 60000); }
-async function syncTick(){
-  if(document.hidden || state.isSaving || !auth.user || auth.user.status!=='active') return;
-  if(document.getElementById('overlay').classList.contains('open')) return;
-  const ae = document.activeElement;
-  if(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
-  try{
-    const d = await apiCall('listRecords');
-    const fresh = d.records.map(normalizeRecord);
-    const sig = a=>a.map(r=>r.id+':'+r.version).sort().join('|');
-    if(document.getElementById('overlay').classList.contains('open')) return;
-    if(sig(fresh) !== sig(state.records)){
-      state.records = fresh; render();
-      showSaveStatus('🔄 มีข้อมูลอัปเดตจากเครื่องอื่น', 'ok');
-    }
-  }catch(e){ console.warn('sync failed:', e.message); }
-}
-
-/* ================= หน้าผู้ใช้งาน (Admin) ================= */
-const ROLE_LABEL = { admin:'Admin', staff:'เจ้าหน้าที่', viewer:'ผู้ดูข้อมูล' };
-async function loadAdminData(){
-  state.usersLoading = true;
-  try{
-    state.users = await apiCall('listUsers');
-    state.audit = await apiCall('listAudit', { limit: 50 });
-  }catch(err){
-    state.users = []; state.audit = [];
-    alert('โหลดข้อมูลผู้ใช้ไม่สำเร็จ: ' + err.message);
-  }
-  state.usersLoading = false;
-  render();
-}
-function viewUsers(){
-  if(!CAN().admin) return '<div class="empty">เฉพาะ Admin เท่านั้น</div>';
-  if(state.users === null){ if(!state.usersLoading) loadAdminData(); return '<div class="empty">⏳ กำลังโหลด…</div>'; }
-  const me = auth.user.email;
-  const statusPill = s => s==='active' ? '<span class="status-pill pill-ok">ใช้งานได้</span>'
-    : (s==='pending' ? '<span class="status-pill pill-warn">รออนุมัติ</span>' : '<span class="status-pill pill-red">ถูกระงับ</span>');
-  const order = { pending:0, active:1, suspended:2 };
-  const users = state.users.slice().sort((a,b)=>(order[a.status]-order[b.status]) || a.email.localeCompare(b.email));
-  const rows = users.map(u=>{
-    const e = escHtml(u.email);
-    const roleSel = `<select data-urole="${e}">${['admin','staff','viewer'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${ROLE_LABEL[r]}</option>`).join('')}</select>`;
-    let acts = '';
-    if(u.email === me) acts = '<span class="sub">(บัญชีของคุณ)</span>';
-    else if(u.status==='pending') acts = `<button class="btn small gold" data-uact="approve" data-email="${e}">อนุมัติ</button>`;
-    else if(u.status==='active') acts = `<button class="btn small ghost" data-uact="setrole" data-email="${e}">บันทึกสิทธิ์</button> <button class="btn small danger" data-uact="suspend" data-email="${e}">ระงับ</button>`;
-    else acts = `<button class="btn small" data-uact="activate" data-email="${e}">เปิดใช้งานอีกครั้ง</button>`;
-    return `<tr><td><b>${escHtml(u.name)||'—'}</b><div class="sub">${e}</div></td><td>${u.email===me?ROLE_LABEL[u.role]||'':roleSel}</td><td>${statusPill(u.status)}</td><td>${escHtml(u.lastLogin)}</td><td>${acts}</td></tr>`;
-  }).join('');
-  const audit = (state.audit||[]).map(a=>`<tr><td style="white-space:nowrap">${escHtml(a.timestamp)}</td><td>${escHtml(a.email)}</td><td>${escHtml(a.action)}</td><td>${escHtml(a.target)}</td><td>${escHtml(a.detail).slice(0,120)}</td></tr>`).join('');
-  return `
-  <div class="page-head"><p class="eyebrow">ผู้ดูแลระบบ</p><h1>ผู้ใช้งานและประวัติการใช้งาน</h1></div>
-  <div class="panel"><div class="panel-title">ผู้ใช้งาน (${users.length} บัญชี)</div>
-    <div class="table-wrap"><table><thead><tr><th>ชื่อ / อีเมล</th><th>สิทธิ์</th><th>สถานะ</th><th>เข้าใช้ล่าสุด</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-  </div>
-  <div class="panel"><div class="flex-between" style="margin-bottom:10px;"><div class="panel-title" style="margin:0;">ประวัติการใช้งานล่าสุด 50 รายการ</div><button class="btn small ghost" id="auditRefresh">🔄 รีเฟรช</button></div>
-    <div class="table-wrap"><table><thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>การกระทำ</th><th>เป้าหมาย</th><th>รายละเอียด</th></tr></thead><tbody>${audit}</tbody></table></div>
-  </div>`;
-}
-function bindUsersEvents(){
-  const rf = document.getElementById('auditRefresh');
-  if(rf) rf.onclick = ()=>{ state.users = null; render(); };
-  document.querySelectorAll('[data-uact]').forEach(b=> b.onclick = async ()=>{
-    const email = b.dataset.email, act = b.dataset.uact;
-    const sel = document.querySelector(`[data-urole="${CSS.escape(email)}"]`);
-    const role = sel ? sel.value : undefined;
-    const payload = { email };
-    if(act==='approve'){ payload.status = 'active'; payload.role = role; }
-    else if(act==='setrole'){ payload.role = role; }
-    else if(act==='suspend'){ if(!confirm('ระงับการใช้งานของ ' + unescHtml(email) + ' ?')) return; payload.status = 'suspended'; }
-    else if(act==='activate'){ payload.status = 'active'; }
-    b.disabled = true;
-    try{ await apiCall('updateUser', payload); showSaveStatus('✅ บันทึกแล้ว','ok'); state.users = null; render(); }
-    catch(err){ alert('ไม่สำเร็จ: ' + err.message); b.disabled = false; }
-  });
-}
-
-/* ===== ครอบ view เดิมเพื่อจำกัดสิทธิ์ (ฝั่ง Server ตรวจซ้ำทุกคำสั่ง) ===== */
-function viewCriteria(){
-  let h = viewCriteriaRaw();
-  if(!CAN().admin){
-    h = h.replace(/<div class="panel">\s*<div class="panel-title">เพิ่มโรคใหม่<\/div>[\s\S]*?<button class="btn gold" id="addDiseaseBtn">[^<]*<\/button>\s*<\/div>/, '')
-         .replace(/<input /g, '<input disabled ')
-         .replace(/<button class="btn small danger" data-del-disease="[^"]*">ลบ<\/button>/g, '');
-  }
-  return h;
-}
-function recordErrorMessage(err){ return err && err.message ? err.message : 'เกิดข้อผิดพลาด'; }
 
 /* ================= HELPERS ================= */
 function toDate(day, monthAbbr, yearBE, timeStr){
@@ -1400,35 +1173,16 @@ const TABS = [
   {id:'printform', label:'พิมพ์แบบฟอร์ม (สสจ.)'},
   {id:'backup', label:'สำรอง/กู้คืนข้อมูล'},
   {id:'export', label:'ส่งออกข้อมูล'},
-  {id:'users', label:'ผู้ใช้งานและประวัติ'},
 ];
-function visibleTabs(){
-  const c = CAN();
-  return TABS.filter(t=>{
-    if(t.id==='users' || t.id==='backup') return c.admin;       // Admin เท่านั้น
-    if(t.id==='export' || t.id==='printform') return c.write;   // Admin + เจ้าหน้าที่
-    return c.read;
-  });
-}
-const ROLE_BADGE = { admin:'Admin', staff:'เจ้าหน้าที่', viewer:'ผู้ดูข้อมูล' };
 function renderSidebar(){
   const sb = document.getElementById('sidebar');
-  const u = auth.user || {};
-  const pic = /^https:\/\//.test(u.picture||'') ? `<img src="${escHtml(u.picture)}" alt="" referrerpolicy="no-referrer">` : '';
-  sb.innerHTML = visibleTabs().map((t,i)=>`
+  sb.innerHTML = TABS.map((t,i)=>`
     <button class="tab-btn ${state.tab===t.id?'active':''}" data-tab="${t.id}">
       <span class="num">0${i+1}</span>${t.label}
-    </button>`).join('') + `
-    <div class="acct">
-      <div class="acct-row">${pic}<div><div class="acct-name">${escHtml(u.name)}</div><div class="acct-mail">${escHtml(u.email)}</div></div></div>
-      <div class="acct-role">${ROLE_BADGE[u.role]||''}</div>
-      <button id="logoutBtn">ออกจากระบบ</button>
-    </div>`;
+    </button>`).join('');
   sb.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>{ state.tab=b.dataset.tab; render(); });
-  document.getElementById('logoutBtn').onclick = logout;
 }
 function render(){
-  if(!visibleTabs().some(t=>t.id===state.tab)) state.tab = 'dashboard';
   renderSidebar();
   const m = document.getElementById('main');
   if(state.tab==='dashboard') m.innerHTML = viewDashboard();
@@ -1439,9 +1193,7 @@ function render(){
   else if(state.tab==='printform') m.innerHTML = viewPrintForm();
   else if(state.tab==='backup') m.innerHTML = viewBackup();
   else if(state.tab==='export') m.innerHTML = viewExport();
-  else if(state.tab==='users') m.innerHTML = viewUsers();
   bindDynamicEvents();
-  bindUsersEvents();
 }
 
 /* ================= DASHBOARD ================= */
@@ -1450,7 +1202,9 @@ function dashNum(v, digits=0){
   if(v===null || v===undefined || !Number.isFinite(Number(v))) return 'ไม่มีข้อมูล';
   return Number(v).toLocaleString('th-TH',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 }
-function dashEsc(v){ return escHtml(unescHtml(v)); }
+function dashEsc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function dashBarSvg(items, color='#2877B8', height=120){
   if(!items.length) return `<div class="dash-empty">ไม่มีข้อมูล</div>`;
   const max=Math.max(1,...items.map(x=>x.value));
@@ -2104,7 +1858,7 @@ function viewE0(){
       <p class="eyebrow">ทะเบียนรวมผู้ป่วยที่ได้รับแจ้ง</p>
       <h1>ทะเบียน E0</h1>
     </div>
-    ${CAN().write?'<button class="btn gold" id="btnAdd">+ เพิ่มผู้ป่วยใหม่</button>':''}
+    <button class="btn gold" id="btnAdd">+ เพิ่มผู้ป่วยใหม่</button>
   </div>
   <div class="toolbar">
     <label style="margin:0;">ช่วงเวลา (วันรับแจ้ง)</label>
@@ -2132,7 +1886,7 @@ function viewE0(){
       <td>${fmtThaiDate(r.investigateDay,r.investigateMonth,r.investigateYear)}</td>
       <td><span class="status-pill ${s.cls}">${s.label}</span></td>
       <td style="max-width:120px;font-size:12px;color:var(--ink-soft);">${r.attachmentRef||'—'}</td>
-      <td>${CAN().write?`<button class="btn small ghost" data-edit="${r.id}">แก้ไข</button>`:''} ${CAN().admin?`<button class="btn small danger" data-del="${r.id}">ลบ</button>`:''}</td>
+      <td><button class="btn small ghost" data-edit="${r.id}">แก้ไข</button> <button class="btn small danger" data-del="${r.id}">ลบ</button></td>
     </tr>`;
   }).join('') : `<tr><td colspan="11"><div class="empty">ไม่พบรายการ</div></td></tr>`}
   </tbody></table>
@@ -2940,7 +2694,7 @@ function viewBackup(){
   `;
 }
 async function doBackupDownload(){
-  const payload = { version:1, exportedAt: new Date().toISOString(), records: state.records.map(rawRecord), thresholds: state.thresholds.map(rawThreshold) };
+  const payload = { version:1, exportedAt: new Date().toISOString(), records: state.records, thresholds: state.thresholds };
   downloadJSON(payload, `backup_ทะเบียนเฝ้าระวังโรค_${todayStr()}.json`);
   state.lastBackupAt = new Date().toISOString();
   try{ localStorage.setItem('lastBackupAt', state.lastBackupAt); }catch(e){}
@@ -2958,7 +2712,7 @@ function readImportFile(cb){
 }
 
 /* ================= CRITERIA ================= */
-function viewCriteriaRaw(){
+function viewCriteria(){
   return `
   <div class="page-head"><p class="eyebrow">เกณฑ์การพิจารณาการระบาด</p><h1>เกณฑ์การระบาด</h1></div>
   <div class="panel">
@@ -3026,7 +2780,7 @@ function toCSV(rows){
       fmtThaiDate(r.investigateDay,r.investigateMonth,r.investigateYear), toTimeInputValue(r.investigateTime),
       fmtThaiDate(r.sendDay,r.sendMonth,r.sendYear), toTimeInputValue(r.sendTime),
       r.receiver, r.receivePlace, r.attachmentRef, r.extraNote
-    ].map(csvCell);
+    ].map(v=>`"${(v??'').toString().replace(/"/g,'""')}"`);
     lines.push(vals.join(','));
   });
   return '\uFEFF'+lines.join('\n');
@@ -3127,9 +2881,20 @@ function modalForm(r){
     </div>
   </fieldset>
 
-  <fieldset><legend>ไฟล์แนบและหมายเหตุ</legend>
-    <div class="field"><label>ไฟล์แนบ</label><input type="text" id="f_attachmentRef" value="${r.attachmentRef||''}"></div>
-    <div class="field"><label>หมายเหตุ</label><input type="text" id="f_extraNote" value="${r.extraNote||''}"></div>
+  <fieldset><legend>ภาพประกอบ / ไฟล์แนบ (สูงสุด 3 ภาพ)</legend>
+    <div class="field">
+      <label>เพิ่มภาพจากกล้องหรืออุปกรณ์</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <label class="btn small" for="f_imageCamera">📷 ถ่ายภาพ</label>
+        <input type="file" id="f_imageCamera" accept="image/*" capture="environment" multiple style="display:none">
+        <label class="btn small ghost" for="f_imagePicker">🖼️ เลือกรูปภาพ</label>
+        <input type="file" id="f_imagePicker" accept="image/*" multiple style="display:none">
+      </div>
+      <small style="display:block;margin-top:7px;color:var(--ink-soft)">เลือกได้รวมไม่เกิน 3 ภาพ ระบบจะปรับขนาดภาพก่อนอัปโหลด</small>
+    </div>
+    <div id="attachmentPreview" class="attachment-grid" aria-live="polite"></div>
+    <div id="attachmentStatus" style="font-size:12px;color:var(--ink-soft);margin-top:8px;"></div>
+    <div class="field" style="margin-top:12px"><label>หมายเหตุ</label><input type="text" id="f_extraNote" value="${r.extraNote||''}"></div>
   </fieldset>
 
   <fieldset>
@@ -3161,7 +2926,130 @@ function modalForm(r){
   `;
 }
 
+
+const MAX_ATTACHMENTS_PER_RECORD = 3;
+const MAX_IMAGE_INPUT_BYTES = 12 * 1024 * 1024;
+let modalPendingImages = [];
+let modalExistingImages = [];
+
+function escapeAttachmentText(v){
+  return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function attachmentEndpoint(payload){
+  const action=payload.action;
+  const body={...payload}; delete body.action;
+  return e0Api(action,body);
+}
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||''));
+    reader.onerror=()=>reject(new Error('อ่านไฟล์ภาพไม่สำเร็จ'));
+    reader.readAsDataURL(file);
+  });
+}
+async function compressImageFile(file){
+  if(!file.type || !file.type.startsWith('image/')) throw new Error('เลือกได้เฉพาะไฟล์รูปภาพ');
+  if(file.size>MAX_IMAGE_INPUT_BYTES) throw new Error('ไฟล์ภาพต้นฉบับต้องมีขนาดไม่เกิน 12 MB');
+  const dataUrl=await readFileAsDataUrl(file);
+  const img=await new Promise((resolve,reject)=>{
+    const image=new Image();
+    image.onload=()=>resolve(image);
+    image.onerror=()=>reject(new Error('ไม่สามารถเปิดไฟล์ภาพนี้ได้'));
+    image.src=dataUrl;
+  });
+  const maxSide=1600, ratio=Math.min(1,maxSide/Math.max(img.width,img.height));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(img.width*ratio));
+  canvas.height=Math.max(1,Math.round(img.height*ratio));
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const jpeg=canvas.toDataURL('image/jpeg',0.78);
+  return {dataUrl:jpeg, fileName:(file.name||'image').replace(/\.[^.]+$/,'')+'.jpg', mimeType:'image/jpeg'};
+}
+function renderAttachmentPreview(){
+  const wrap=document.getElementById('attachmentPreview');
+  const status=document.getElementById('attachmentStatus');
+  if(!wrap||!status)return;
+  const existing=modalExistingImages.map((a,i)=>`
+    <div class="attachment-card">
+      <img src="${escapeAttachmentText(a.viewUrl||'')}" alt="ภาพแนบ" onerror="this.style.opacity='.25';this.alt='เปิดภาพไม่ได้'">
+      <div class="attachment-name">${escapeAttachmentText(a.fileName||'ภาพแนบ')}</div>
+      <div class="attachment-actions">
+        <a class="btn small ghost" href="${escapeAttachmentText(a.viewUrl||'#')}" target="_blank" rel="noopener">เปิดภาพ</a>
+        <button type="button" class="btn small danger" data-remove-existing="${i}">ลบ</button>
+      </div>
+    </div>`).join('');
+  const pending=modalPendingImages.map((a,i)=>`
+    <div class="attachment-card">
+      <img src="${a.dataUrl}" alt="ภาพที่เลือก">
+      <div class="attachment-name">${escapeAttachmentText(a.fileName)}</div>
+      <div class="pending-tag">รออัปโหลด</div>
+      <button type="button" class="btn small danger" data-remove-pending="${i}">นำออก</button>
+    </div>`).join('');
+  wrap.innerHTML=existing+pending || '<div style="font-size:12px;color:var(--ink-soft)">ยังไม่มีภาพแนบ</div>';
+  status.textContent=`ภาพที่บันทึกแล้ว ${modalExistingImages.length} ภาพ · ภาพที่รออัปโหลด ${modalPendingImages.length} ภาพ · รวม ${modalExistingImages.length+modalPendingImages.length}/${MAX_ATTACHMENTS_PER_RECORD} ภาพ`;
+  wrap.querySelectorAll('[data-remove-pending]').forEach(btn=>btn.onclick=()=>{
+    modalPendingImages.splice(Number(btn.dataset.removePending),1); renderAttachmentPreview();
+  });
+  wrap.querySelectorAll('[data-remove-existing]').forEach(btn=>btn.onclick=async()=>{
+    const item=modalExistingImages[Number(btn.dataset.removeExisting)];
+    if(!item || !confirm('ต้องการลบภาพแนบนี้ใช่หรือไม่?'))return;
+    try{
+      await attachmentEndpoint({action:'deleteAttachment',attachmentId:item.attachmentId});
+      modalExistingImages=modalExistingImages.filter(x=>x.attachmentId!==item.attachmentId);
+      renderAttachmentPreview();
+    }catch(err){alert('ลบภาพไม่สำเร็จ: '+err.message);}
+  });
+}
+async function handleAttachmentFiles(fileList){
+  const files=Array.from(fileList||[]);
+  const remaining=MAX_ATTACHMENTS_PER_RECORD-modalExistingImages.length-modalPendingImages.length;
+  if(files.length>remaining){alert(`แนบภาพได้สูงสุด ${MAX_ATTACHMENTS_PER_RECORD} ภาพต่อรายการ (ยังเพิ่มได้ ${Math.max(0,remaining)} ภาพ)`);}
+  for(const file of files.slice(0,Math.max(0,remaining))){
+    try{
+      const packed=await compressImageFile(file);
+      modalPendingImages.push(packed);
+      renderAttachmentPreview();
+    }catch(err){alert(`${file.name||'ไฟล์ภาพ'}: ${err.message}`);}
+  }
+}
+async function loadRecordAttachments(recordId){
+  modalPendingImages=[];
+  modalExistingImages=[];
+  renderAttachmentPreview();
+  if(!recordId)return;
+  try{
+    const data=await attachmentEndpoint({action:'listAttachments',recordId});
+    modalExistingImages=Array.isArray(data.attachments)?data.attachments:[];
+    renderAttachmentPreview();
+  }catch(err){
+    const status=document.getElementById('attachmentStatus');
+    if(status)status.textContent='โหลดรายการภาพไม่สำเร็จ: '+err.message;
+  }
+}
+async function uploadPendingAttachments(recordId){
+  for(const item of modalPendingImages){
+    const parts=item.dataUrl.split(',');
+    if(parts.length!==2)throw new Error('ข้อมูลภาพไม่ถูกต้อง');
+    const mime=(parts[0].match(/data:(.*?);base64/)||[])[1]||'image/jpeg';
+    await attachmentEndpoint({
+      action:'uploadAttachment',
+      recordId,
+      fileName:item.fileName,
+      mimeType:mime,
+      base64:parts[1]
+    });
+  }
+  modalPendingImages=[];
+}
+
 function bindModalEvents(rec){
+  loadRecordAttachments(rec.id);
+  const cameraInput=document.getElementById('f_imageCamera');
+  const pickerInput=document.getElementById('f_imagePicker');
+  if(cameraInput) cameraInput.onchange=async e=>{await handleAttachmentFiles(e.target.files);e.target.value='';};
+  if(pickerInput) pickerInput.onchange=async e=>{await handleAttachmentFiles(e.target.files);e.target.value='';};
   document.getElementById('modalClose').onclick = closeModal;
   document.getElementById('modalCancel').onclick = closeModal;
   document.getElementById('f_diagnosisId').onchange = (e)=>{
@@ -3188,8 +3076,10 @@ function bindModalEvents(rec){
     };
   });
 
+  document.getElementById('modalSave').disabled = !['admin','staff'].includes(e0CurrentUser?.role);
   document.getElementById('modalSave').onclick = async ()=>{
-    const g = id=>escHtml(document.getElementById(id).value);
+    if(!['admin','staff'].includes(e0CurrentUser?.role)){alert('บัญชีนี้ไม่มีสิทธิ์บันทึกข้อมูล');return;}
+    const g = id=>document.getElementById(id).value;
     const mooSel = g('f_moo');
     const mooFinal = mooSel==='__other' ? (document.getElementById('f_mooOther')?g('f_mooOther'):'') : mooSel;
 
@@ -3216,7 +3106,7 @@ function bindModalEvents(rec){
       investigateDay:investD.day, investigateMonth:investD.month, investigateYear:investD.yearBE, investigateTime:g('f_investigateTime'),
       sendDay:sendD.day, sendMonth:sendD.month, sendYear:sendD.yearBE, sendTime:g('f_sendTime'),
       receiver:g('f_receiver'), receivePlace:g('f_receivePlace'),
-      attachmentRef:g('f_attachmentRef'), extraNote:g('f_extraNote'),
+      attachmentRef:rec.attachmentRef||'', extraNote:g('f_extraNote'),
       rep_enabled: document.getElementById('f_rep_enabled').checked,
       rep_reporterName: g('f_rep_reporterName'), rep_reporterContact: g('f_rep_reporterContact'),
       rep_eventLocation: g('f_rep_eventLocation'),
@@ -3224,36 +3114,24 @@ function bindModalEvents(rec){
       rep_activities: g('f_rep_activities'), rep_team: g('f_rep_team'),
       rep_findings: g('f_rep_findings'), rep_contacts: g('f_rep_contacts'),
     };
-    const isNew = !state.editingId;
-    const saveBtn = document.getElementById('modalSave');
-    saveBtn.disabled = true;
-    let addedLocalThreshold = false;
-    try{
-      if(updated.diagnosisId==='other' && updated.diagnosisText.trim()){
-        const before = state.thresholds.length;
-        const newId = findOrCreateThreshold(updated.diagnosisText.trim());
-        if(newId){
-          updated.diagnosisId = newId;
-          if(state.thresholds.length>before){
-            addedLocalThreshold = true;
-            const local = state.thresholds[state.thresholds.length-1];
-            const res = await apiCall('addThreshold', { threshold: rawThreshold(local) });
-            const th = normalizeThreshold(res.threshold);
-            state.thresholds[state.thresholds.length-1] = th;      // ใช้ id ที่เซิร์ฟเวอร์ยืนยัน
-            updated.diagnosisId = th.id;
-            addedLocalThreshold = false;
-          }
-        }
-      }
-      const saved = await commitRecord(updated, isNew);
-      mergeCurrent(saved);
-      closeModal(); render();
-    }catch(err){
-      if(addedLocalThreshold) state.thresholds.pop();
-      saveBtn.disabled = false;
-      if(err.code==='RELOADED'){ closeModal(); render(); }
-      else alert('บันทึกไม่สำเร็จ: ' + recordErrorMessage(err));
+    if(state.editingId){
+      const idx = state.records.findIndex(x=>x.id===state.editingId);
+      state.records[idx] = updated;
+    } else {
+      state.records.push(updated);
     }
+    if(updated.diagnosisId==='other' && updated.diagnosisText.trim()){
+      const newId = findOrCreateThreshold(updated.diagnosisText.trim());
+      if(newId){ updated.diagnosisId = newId; await saveThresholds(); }
+    }
+    await saveRecords();
+    try{
+      await uploadPendingAttachments(updated.id);
+    }catch(uploadErr){
+      alert('บันทึกข้อมูลรายการแล้ว แต่มีภาพบางส่วนอัปโหลดไม่สำเร็จ: '+uploadErr.message+' สามารถเปิดรายการเดิมแล้วแนบภาพอีกครั้งได้');
+    }
+    closeModal();
+    render();
   };
 }
 
@@ -3322,19 +3200,9 @@ function bindDynamicEvents(){
 
   document.querySelectorAll('[data-edit]').forEach(b=> b.onclick = ()=>openModal(b.dataset.edit));
   document.querySelectorAll('[data-del]').forEach(b=> b.onclick = async ()=>{
-    if(!CAN().admin){ alert('เฉพาะ Admin เท่านั้นที่ลบข้อมูลได้'); return; }
-    if(!confirm('ยืนยันการลบ? (ระบบจะเก็บสำเนาข้อมูลก่อนลบไว้ในประวัติการใช้งาน)')) return;
-    const id = b.dataset.del;
-    const r = state.records.find(x=>x.id===id);
-    try{
-      showSaveStatus('⏳ กำลังลบ…','loading');
-      await apiCall('deleteRecord', { id, baseVersion: r ? r.version : undefined });
-      state.records = state.records.filter(x=>x.id!==id);
-      showSaveStatus('✅ ลบแล้ว','ok'); render();
-    }catch(err){
-      showSaveStatus('❌ ลบไม่สำเร็จ','err');
-      alert('ลบไม่สำเร็จ: ' + err.message);
-      await loadState({silent:true});
+    if(confirm('ยืนยันการลบ?')){
+      state.records = state.records.filter(r=>r.id!==b.dataset.del);
+      await saveRecords(); render();
     }
   });
 
@@ -3418,7 +3286,7 @@ function bindDynamicEvents(){
     if(selectedRecords.length > 5 && !confirm(`จะดาวน์โหลด ${selectedRecords.length} ไฟล์ ยืนยันหรือไม่?`)) return;
     pfExportBtn.disabled = true;
     pfExportBtn.textContent = '⏳ กำลังสร้างไฟล์...';
-    await exportExcelPerCase(selectedRecords.map(rawRecord));
+    await exportExcelPerCase(selectedRecords);
     pfExportBtn.disabled = false;
     pfExportBtn.textContent = '📊 ส่งออก Excel (1 ไฟล์/เคส)';
   };
@@ -3429,7 +3297,7 @@ function bindDynamicEvents(){
     if(!selectedRecords.length){ alert('กรุณาเลือกเคสอย่างน้อย 1 รายการ'); return; }
     pfExportAllBtn.disabled = true;
     pfExportAllBtn.textContent = '⏳ กำลังสร้างไฟล์...';
-    await exportExcelAll(selectedRecords.map(rawRecord));
+    await exportExcelAll(selectedRecords);
     pfExportAllBtn.disabled = false;
     pfExportAllBtn.textContent = '📊 ส่งออก Excel (รวมทุกเคส)';
   };
@@ -3439,33 +3307,26 @@ function bindDynamicEvents(){
 
   const importMergeBtn = document.getElementById('importMergeBtn');
   if(importMergeBtn) importMergeBtn.onclick = ()=> readImportFile(async (data)=>{
-    if(!CAN().admin){ alert('เฉพาะ Admin เท่านั้น'); return; }
     if(!data || !Array.isArray(data.records) || !Array.isArray(data.thresholds)){ alert('ไฟล์ไม่ถูกต้อง'); return; }
-    try{
-      showSaveStatus('⏳ กำลังนำเข้า…','loading');
-      const res = await apiCall('importRecords', { records: data.records, mode:'merge' });
-      let addedThresholds = 0;
-      data.thresholds.forEach(t=>{ if(!state.thresholds.some(x=>x.id===t.id)){ state.thresholds.push(normalizeThreshold(t)); addedThresholds++; } });
-      if(addedThresholds) await saveThresholds();
-      showSaveStatus('✅ นำเข้าสำเร็จ','ok');
-      alert(`ผสานสำเร็จ: +${res.written} ผู้ป่วย, +${addedThresholds} เกณฑ์`);
-      await loadState();
-    }catch(err){ showSaveStatus('❌ นำเข้าไม่สำเร็จ','err'); alert('นำเข้าไม่สำเร็จ: ' + err.message); }
+    const existingIds = new Set(state.records.map(r=>r.id));
+    let addedRecords = 0;
+    data.records.forEach(r=>{ if(!existingIds.has(r.id)){ state.records.push(r); addedRecords++; } });
+    let addedThresholds = 0;
+    data.thresholds.forEach(t=>{ if(!state.thresholds.some(x=>x.id===t.id)){ state.thresholds.push(t); addedThresholds++; } });
+    await saveRecords(); await saveThresholds();
+    alert(`ผสานสำเร็จ: +${addedRecords} ผู้ป่วย, +${addedThresholds} เกณฑ์`);
+    render();
   });
 
   const importReplaceBtn = document.getElementById('importReplaceBtn');
   if(importReplaceBtn) importReplaceBtn.onclick = ()=> readImportFile(async (data)=>{
-    if(!CAN().admin){ alert('เฉพาะ Admin เท่านั้น'); return; }
     if(!data || !Array.isArray(data.records) || !Array.isArray(data.thresholds)){ alert('ไฟล์ไม่ถูกต้อง'); return; }
-    if(!confirm(`ยืนยันแทนที่ทั้งหมด? (${state.records.length} → ${data.records.length})\n\nระบบจะสำรองสเปรดชีตเป็นสำเนาใน Google Drive ให้อัตโนมัติก่อนแทนที่`)) return;
-    try{
-      showSaveStatus('⏳ กำลังกู้คืน…','loading');
-      const res = await apiCall('importRecords', { records: data.records, mode:'replace' });
-      if(data.thresholds.length){ state.thresholds = data.thresholds.map(normalizeThreshold); await saveThresholds(); }
-      showSaveStatus('✅ กู้คืนสำเร็จ','ok');
-      alert('กู้คืนสำเร็จ' + (res.backupUrl ? '\nสำเนาก่อนกู้คืน: ' + res.backupUrl : ''));
-      await loadState();
-    }catch(err){ showSaveStatus('❌ กู้คืนไม่สำเร็จ','err'); alert('กู้คืนไม่สำเร็จ: ' + err.message); }
+    if(!confirm(`ยืนยันแทนที่ทั้งหมด? (${state.records.length} → ${data.records.length})`)) return;
+    state.records = data.records;
+    state.thresholds = data.thresholds;
+    await saveRecords(); await saveThresholds();
+    alert('กู้คืนสำเร็จ');
+    render();
   });
 
   document.querySelectorAll('.dash-delay-mode button').forEach(button=>{
@@ -3507,12 +3368,11 @@ function bindDynamicEvents(){
 
   document.querySelectorAll('[data-th]').forEach(inp=>{
     inp.onchange = async (e)=>{
-      if(!CAN().admin) return;
       const t = state.thresholds.find(x=>x.id===e.target.dataset.th);
       const f = e.target.dataset.field;
       let v = e.target.value;
       if(f==='windowDays'){ t[f] = v===''? null : parseInt(v,10); }
-      else if(f==='note'){ t[f] = escHtml(v); }
+      else if(f==='note'){ t[f] = v; }
       else { t[f] = parseInt(v,10)||0; }
       await saveThresholds();
     };
@@ -3520,36 +3380,25 @@ function bindDynamicEvents(){
 
   const addDiseaseBtn = document.getElementById('addDiseaseBtn');
   if(addDiseaseBtn) addDiseaseBtn.onclick = async ()=>{
-    if(!CAN().admin) return;
-    const name = escHtml(document.getElementById('newDiseaseName').value.trim());
+    const name = document.getElementById('newDiseaseName').value.trim();
     if(!name){ alert('กรุณาระบุชื่อโรค'); return; }
     if(state.thresholds.some(t=>t.name.trim().toLowerCase()===name.toLowerCase())){ alert('มีโรคนี้อยู่แล้ว'); return; }
     const minCases = parseInt(document.getElementById('newDiseaseMin').value,10)||1;
     const windowRaw = document.getElementById('newDiseaseWindow').value;
     const windowDays = windowRaw===''? null : parseInt(windowRaw,10);
     const deadlineHours = parseInt(document.getElementById('newDiseaseDeadline').value,10)||168;
-    const note = escHtml(document.getElementById('newDiseaseNote').value.trim()) || `เป็นกลุ่มก้อนตั้งแต่ ${minCases} ราย`;
+    const note = document.getElementById('newDiseaseNote').value.trim() || `เป็นกลุ่มก้อนตั้งแต่ ${minCases} ราย`;
     state.thresholds.push({ id:'custom_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), name, minCases, windowDays, deadlineHours, note, custom:true });
-    if(!(await saveThresholds())){ await loadState(); return; } render();
+    await saveThresholds(); render();
   };
 
   document.querySelectorAll('[data-del-disease]').forEach(b=> b.onclick = async ()=>{
-    if(!CAN().admin) return;
     const id = b.dataset.delDisease;
     const t = state.thresholds.find(x=>x.id===id);
-    if(!confirm(`ลบเกณฑ์ "${unescHtml(t.name)}"?`)) return;
-    try{
-      for(const r of state.records.filter(x=>x.diagnosisId===id)){
-        const saved = await commitRecord({ ...r, diagnosisId:'other', diagnosisText:t.name }, false);
-        mergeCurrent(saved);
-      }
-      state.thresholds = state.thresholds.filter(x=>x.id!==id);
-      if(!(await saveThresholds())){ await loadState(); return; }
-      render();
-    }catch(err){
-      if(err.code!=='RELOADED') alert('ลบเกณฑ์ไม่สำเร็จ: ' + recordErrorMessage(err));
-      await loadState();
-    }
+    if(!confirm(`ลบเกณฑ์ "${t.name}"?`)) return;
+    state.records.forEach(r=>{ if(r.diagnosisId===id){ r.diagnosisId='other'; r.diagnosisText=t.name; } });
+    state.thresholds = state.thresholds.filter(x=>x.id!==id);
+    await saveThresholds(); await saveRecords(); render();
   });
 
   const exportMonth = document.getElementById('exportMonth');
@@ -3563,18 +3412,18 @@ function bindDynamicEvents(){
     if(state.exportMonth) l = l.filter(r=>r.reportMonth===state.exportMonth);
     if(state.exportYear) l = l.filter(r=>String(normalizeYearBE(r.reportYear))===String(state.exportYear));
     const suffix = (state.exportMonth||state.exportYear) ? `_${state.exportMonth||'ทุกเดือน'}_${state.exportYear||'ทุกปี'}` : '';
-    downloadCSV(toCSV(l.map(rawRecord)), `E0_ทะเบียนรวม${suffix}.csv`);
+    downloadCSV(toCSV(l), `E0_ทะเบียนรวม${suffix}.csv`);
   };
   const exportE1 = document.getElementById('exportE1');
   if(exportE1) exportE1.onclick = ()=>{
     const dId = document.getElementById('exportDisease').value;
     const rows = state.records.filter(r=>r.diagnosisId===dId);
     const t = thresholdFor(dId);
-    downloadCSV(toCSV(rows.map(rawRecord)), `E1_${t.name.split(' ')[0]}.csv`);
+    downloadCSV(toCSV(rows), `E1_${t.name.split(' ')[0]}.csv`);
   };
 }
 
-boot();
+initGoogleLogin();
 </script>
 </body>
 </html>
